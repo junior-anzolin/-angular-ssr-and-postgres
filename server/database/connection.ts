@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-import { Categories } from './entities/categories.entity';
 import { User } from './entities/user.entity';
 
 export const connection = new DataSource({
