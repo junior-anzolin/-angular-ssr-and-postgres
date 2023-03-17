@@ -1,60 +1,59 @@
-import 'zone.js/node';
+import 'zone.js/dist/zone-node';
 
-import { APP_BASE_HREF } from '@angular/common';
 import { ngExpressEngine } from '@nguniversal/express-engine';
+import * as bodyParser from 'body-parser';
 import * as express from 'express';
-import { existsSync } from 'fs';
 import { join } from 'path';
-
+import { loadRoutes } from 'server/routes';
+import { connection } from './server/database/connection';
 import { AppServerModule } from './src/main.server';
 
-// The Express app is exported so that it can be used by serverless Functions.
-export function app(): express.Express {
-  const server = express();
-  const distFolder = join(process.cwd(), 'dist/angular-ssr-and-postgres/browser');
-  const indexHtml = existsSync(join(distFolder, 'index.original.html')) ? 'index.original.html' : 'index';
+const app = express();
 
-  // Our Universal express-engine (found @ https://github.com/angular/universal/tree/main/modules/express-engine)
-  server.engine('html', ngExpressEngine({
-    bootstrap: AppServerModule,
-  }));
+const PORT = Number(process.env['PORT'] || 4000);
+const DIST_FOLDER = join(process.cwd(), 'dist/browser');
 
-  server.set('view engine', 'html');
-  server.set('views', distFolder);
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  // Example Express Rest API endpoints
-  // server.get('/api/**', (req, res) => { });
-  // Serve static files from /browser
-  server.get('*.*', express.static(distFolder, {
-    maxAge: '1y'
-  }));
+app.engine(
+  'html',
+  ngExpressEngine({
+    bootstrap: AppServerModule, // Give it a module to bootstrap
+  })
+);
 
-  // All regular routes use the Universal engine
-  server.get('*', (req, res) => {
-    res.render(indexHtml, { req, providers: [{ provide: APP_BASE_HREF, useValue: req.baseUrl }] });
-  });
+app.set('view engine', 'html');
+app.set('views', DIST_FOLDER);
 
-  return server;
-}
+// Example Express Rest API endpoints
+// app.get('/api/**', (req, res) => { });
+// Serve static files from /browser
+app.get(
+  '*.*',
+  express.static(DIST_FOLDER, {
+    maxAge: '1y',
+  })
+);
 
-function run(): void {
-  const port = process.env['PORT'] || 4000;
+connection
+  .initialize()
+  .then(() => {
+    console.log('Success in connection of DB');
+  })
+  .catch((error) => console.log('Error in connection of DB', error));
 
-  // Start up the Node server
-  const server = app();
-  server.listen(port, () => {
-    console.log(`Node Express server listening on http://localhost:${port}`);
-  });
-}
+loadRoutes(app);
 
-// Webpack will replace 'require' with '__webpack_require__'
-// '__non_webpack_require__' is a proxy to Node 'require'
-// The below code is to ensure that the server is run only when not requiring the bundle.
-declare const __non_webpack_require__: NodeRequire;
-const mainModule = __non_webpack_require__.main;
-const moduleFilename = mainModule && mainModule.filename || '';
-if (moduleFilename === __filename || moduleFilename.includes('iisnode')) {
-  run();
-}
+// All regular routes use the Universal engine
+app.get('*', (req, res) => {
+  res.render('index', { req });
+});
 
-export * from './src/main.server';
+// Start up the Node server
+app.listen(PORT, () => {
+  console.log(
+    'Error in serve Angular',
+    `Server connected on http://localhost:${PORT}`
+  );
+});
