@@ -1,27 +1,30 @@
-# AngularSsrAndPostgres
+# Angular Server Side and PostgreSQL
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.2.
+Projeto base para trabalhar com Angular Server Side e PostgreSQL.
 
-## Development server
+### Executar projeto
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Git clone
+- Execute o comando `npm install`
+- Execute o comando `docker compose up -d`
+- Execute o comando `npm run dev:ssr`
 
-## Code scaffolding
+### Lista de APIs pré existentes
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- GET `/api/user/get`
 
-## Build
+### Guia de desenvolvimento
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+O projeto foi preparado para trabalhar de forma modular, temos a seguinte estrutura de arquivos
 
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- `src`: Projeto front end
+- `server`: Projeto back end
+  - `database`
+    - `connection.ts`: Arquivo onde esta a configuração do banco de dados
+    - `entities`: Pasta onde fica as entidades do TypeORM
+      - `user.entity.ts`
+  - `routes`: Pasta onde esta localizada os módulos de rotas
+    - `index.ts`: Arquivo onde esta sendo inicializada as rotas
+    - `user.routes.ts`: Arquivo modelo de como deve ser feita as rotas
+  - `utils`
+    - `routes.ts`: Modulo base para ser utilizado dentro dos arquivos de rotas
